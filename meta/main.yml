@@ -1,0 +1,15 @@
+galaxy_info:
+  role_name: docker
+  author: Martin Kuba
+  description: Installs Docker daemon with IPv6 enabled
+  company: CESNET
+  license: Apache
+  min_ansible_version: 2.16
+  platforms:
+    - name: Debian
+      versions:
+        - buster
+        - bookworm
+  galaxy_tags:
+    - "system"
+dependencies: []

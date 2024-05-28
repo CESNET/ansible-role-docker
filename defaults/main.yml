@@ -1,0 +1,23 @@
+docker_packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+docker_packages_hold: false
+
+docker_registries: []
+
+docker_local_network_create: true
+docker_local_network_name: network
+docker_local_network_ipv6: true
+docker_local_network_ipam_config:
+
+docker_portainer_install: false
+docker_portainer_admin_password_file: /etc/portainer_admin_password.txt
+docker_portainer_admin_password_file_owner: root
+docker_portainer_admin_password_file_group: root
+docker_portainer_use_certbot_certificates: false
+
+docker_cron_jobs: []
+docker_cron_jobs_force: false
+
+docker_volumes: []

@@ -1,0 +1,169 @@
+- name: "install prereq packages for Docker"
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gpg
+      - software-properties-common
+    state: present
+
+- name: "create /etc/apt/keyrings"
+  file:
+    state: directory
+    path: /etc/apt/keyrings
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: "add Docker repository key"
+  get_url:
+    url: "https://download.docker.com/linux/debian/gpg"
+    dest: /etc/apt/keyrings/docker.asc
+    force: false
+
+- name: "clean old line without signed-by"
+  lineinfile:
+    path: /etc/apt/sources.list.d/docker.list
+    line: "deb [arch=amd64] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+    state: absent
+
+- name: "add Docker repository"
+  apt_repository:
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+    filename: 'docker'
+    state: present
+
+- name: "install docker packages"
+  apt:
+    state: present
+    name: "{{ item }}"
+  loop: "{{ docker_packages }}"
+
+- name: "hold docker packages from upgrading"
+  when: docker_packages_hold
+  dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  loop: "{{ docker_packages }}"
+
+- name: "install python-docker"
+  apt:
+    name:
+      - python3-docker
+      - pass
+    state: present
+
+- name: "change /etc/docker/daemon.json"
+  template:
+    src: daemon.json.j2
+    dest: /etc/docker/daemon.json
+  register: daemon_json
+
+- name: "restart Docker after changing daemon.json"
+  when: daemon_json.changed
+  service:
+    name: docker
+    state: restarted
+
+- name: "Portainer app for easy maintenance of Docker"
+  when: docker_portainer_install
+  block:
+    # install Portainer web app for managing containers
+    - name: "create volume for portainer"
+      docker_volume:
+        name: portainer_data
+
+    - name: "check that portainer admin password, certificate and private key are defined"
+      assert:
+        that:
+          - docker_portainer_admin_password is defined
+          - docker_portainer_fullchain_file is defined
+          - docker_portainer_privkey_file is defined
+
+    - name: "create password file"
+      copy:
+        dest: "{{ docker_portainer_admin_password_file }}"
+        content: "{{ docker_portainer_admin_password }}"
+        owner: "{{ docker_portainer_admin_password_file_owner }}"
+        group: "{{ docker_portainer_admin_password_file_group }}"
+        mode: '0640'
+
+    - name: "list normal portainer volumes"
+      set_fact:
+        portainer_mounts:
+          - { type: bind, source: /var/run/docker.sock, target: /var/run/docker.sock }
+          - { type: volume, source: portainer_data, target: /data }
+          - { type: bind, source: "{{ docker_portainer_admin_password_file }}", target: "{{ docker_portainer_admin_password_file }}", read_only: yes }
+          - { type: bind, source: "{{ docker_portainer_fullchain_file }}", target: "{{ docker_portainer_fullchain_file }}", read_only: yes }
+          - { type: bind, source: "{{ docker_portainer_privkey_file }}", target: "{{ docker_portainer_privkey_file }}", read_only: yes }
+        certbot_mounts:
+          - { type: bind, source: /etc/letsencrypt/live, target: /etc/letsencrypt/live, read_only: yes }
+          - { type: bind, source: /etc/letsencrypt/archive, target: /etc/letsencrypt/archive, read_only: yes }
+
+    - name: "add certbot dirs to portainer volumes"
+      when: docker_portainer_use_certbot_certificates
+      set_fact:
+        portainer_mounts: "{{ portainer_mounts + certbot_mounts }}"
+
+    - name: "install portainer container"
+      docker_container:
+        name: portainer
+        image: "portainer/portainer-ce:{{ perun_portainer_version }}"
+        pull:  yes
+        restart_policy: always
+        command: "-H unix:///var/run/docker.sock --http-disabled --sslcert {{ docker_portainer_fullchain_file }} --sslkey {{ docker_portainer_privkey_file }} --admin-password-file {{ docker_portainer_admin_password_file }}"
+        ports:
+          - 9000:9443
+        default_host_ip: ''
+        mounts: "{{ portainer_mounts }}"
+        image_name_mismatch: recreate
+        comparisons:
+          '*': strict
+      register: portainer_container
+
+    - name: "put portainer IP into /etc/hosts"
+      lineinfile:
+        dest: /etc/hosts
+        regexp: 'portainer'
+        line: "{{ portainer_container.container.NetworkSettings.IPAddress }} portainer"
+
+- name: "log into docker container registries"
+  docker_login:
+    registry_url: "{{ item.url }}"
+    username: "{{ item.username }}"
+    password: "{{ item.password }}"
+  loop: "{{ docker_registries }}"
+  loop_control:
+    label: "{{ item.url }}"
+
+- name: "create a local Docker network named {{ docker_local_network_name }}"
+  when: docker_local_network_create
+  docker_network:
+    name: "{{ docker_local_network_name }}"
+    enable_ipv6: "{{ docker_local_network_ipv6 }}"
+    driver: bridge
+    ipam_config: "{{ docker_local_network_ipam_config }}"
+    driver_options:
+      com.docker.network.driver.mtu: "{{ ansible_default_ipv4.mtu }}"
+  register: docker_local_network_info
+
+- name: "create volumes"
+  docker_volume:
+    name: "{{ item }}"
+  loop: "{{ docker_volumes }}"
+
+- name: "cron jobs"
+  cron:
+    name: "{{ item.name }}"
+    user: "{{ item.user|default('root') }}"
+    job: "{{ item.job }}"
+    hour: "{{ item.hour|default('*') }}"
+    minute: "{{ item.minute|default('*') }}"
+  loop: "{{ docker_cron_jobs }}"
+
+- name: "cron jobs force"
+  shell: "{{ item.job }}"
+  when: docker_cron_jobs_force
+  loop: "{{ docker_cron_jobs }}"
+
