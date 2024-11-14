@@ -109,7 +109,7 @@
     - name: "install portainer container"
       docker_container:
         name: portainer
-        image: "portainer/portainer-ce:{{ perun_portainer_version }}"
+        image: "portainer/portainer-ce:{{ docker_portainer_version }}"
         pull:  yes
         restart_policy: always
         command: "-H unix:///var/run/docker.sock --http-disabled --sslcert {{ docker_portainer_fullchain_file }} --sslkey {{ docker_portainer_privkey_file }} --admin-password-file {{ docker_portainer_admin_password_file }}"
