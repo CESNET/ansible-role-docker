@@ -5,7 +5,6 @@
       - ca-certificates
       - curl
       - gpg
-      - software-properties-common
     state: present
 
 - name: "create /etc/apt/keyrings"
