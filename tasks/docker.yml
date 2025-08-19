@@ -21,16 +21,20 @@
     dest: /etc/apt/keyrings/docker.asc
     force: false
 
-- name: "clean old line without signed-by"
-  lineinfile:
+- name: "remove old format docker.list"
+  file:
     path: /etc/apt/sources.list.d/docker.list
-    line: "deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution|lower }} {{ ansible_distribution_release }} stable"
     state: absent
 
 - name: "add Docker repository"
-  apt_repository:
-    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/{{ ansible_distribution|lower }} {{ ansible_distribution_release }} stable"
-    filename: 'docker'
+  ansible.builtin.deb822_repository:
+    name: docker
+    types: deb
+    architectures: amd64
+    signed_by: /etc/apt/keyrings/docker.asc
+    uris: "https://download.docker.com/linux/{{ ansible_distribution|lower }}"
+    suites: "{{ ansible_distribution_release }}"
+    components: [ "stable" ]
     state: present
 
 - name: "install docker packages"
