@@ -112,6 +112,7 @@
     - name: "install portainer container"
       docker_container:
         name: portainer
+        hostname: portainer
         image: "portainer/portainer-ce:{{ docker_portainer_version }}"
         pull:  yes
         restart_policy: always
@@ -125,11 +126,11 @@
           '*': strict
       register: portainer_container
 
-    - name: "put portainer IP into /etc/hosts"
+    - name: "put container IP into /etc/hosts"
       lineinfile:
         dest: /etc/hosts
         regexp: 'portainer'
-        line: "{{ portainer_container.container.NetworkSettings.IPAddress }} portainer"
+        line: "{{ portainer_container.container.NetworkSettings.Networks.bridge.IPAddress }} portainer"
 
 - name: "log into docker container registries"
   docker_login:
