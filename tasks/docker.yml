@@ -36,6 +36,12 @@
     suites: "{{ ansible_distribution_release }}"
     components: [ "stable" ]
     state: present
+  register: docker_repo
+
+- name: "update apt cache"
+  apt:
+    update_cache: yes
+  when: docker_repo.changed
 
 - name: "install docker packages"
   apt:
