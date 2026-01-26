@@ -1,6 +1,6 @@
 {
 {# MTU is needed in OpenStack VMs #}
-  "mtu": {{ ansible_default_ipv4.mtu }},
+  "mtu": {{ ansible_facts['default_ipv4'].mtu }},
 {# sets logging into systemd-journald and syslog #}
   "log-driver": "journald",
   "log-opts": {
