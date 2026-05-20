@@ -22,3 +22,5 @@ docker_cron_jobs: []
 docker_cron_jobs_force: false
 
 docker_volumes: []
+
+# docker_unhealthy_container_autorestarter: false

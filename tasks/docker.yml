@@ -177,3 +177,31 @@
   when: docker_cron_jobs_force
   loop: "{{ docker_cron_jobs }}"
 
+- name: "Configure unhealthy container autorestarter"
+  when: docker_unhealthy_container_autorestarter is defined
+  block:
+    - name: Set-up user docker-unhealthy-autorestarter
+      ansible.builtin.user:
+        name: docker-unhealthy-autorestarter
+        group: docker
+        system: true
+        state: "{{ 'present' if docker_unhealthy_container_autorestarter else 'absent' }}"
+        shell: /usr/sbin/nologin
+        create_home: false
+      notify: restart docker-unhealthy-autorestarter.service
+
+    - name: Install script docker-unhealthy-autorestarter
+      ansible.builtin.copy:
+        src: files/docker-unhealthy-autorestarter
+        dest: /usr/local/bin/
+        owner: docker-unhealthy-autorestarter
+        mode: 0744
+      notify: restart docker-unhealthy-autorestarter.service
+      when: docker_unhealthy_container_autorestarter
+
+    - name: Install systemd service docker-unhealthy-autorestarter.service
+      ansible.builtin.copy:
+        src: files/docker-unhealthy-autorestarter.service
+        dest: /etc/systemd/system/
+      notify: restart docker-unhealthy-autorestarter.service
+      when: docker_unhealthy_container_autorestarter

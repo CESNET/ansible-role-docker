@@ -40,6 +40,7 @@ Role Variables
 * **docker_cron_jobs** - list of cron job definitions, default is empty
 * **docker_cron_jobs_force** - boolean whether to run cron jobs immediately, default is false
 * **docker_volumes** - list of volume names to create, default is empty
+* **docker_unhealthy_container_autorestarter** - autorestart the unhealthy docker containers, default is undefined
 
 Examples of Playbooks
 ----------------
