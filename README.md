@@ -28,6 +28,7 @@ Role Variables
 * **docker_local_network_name** - network name, default is "network"
 * **docker_local_network_ipv6** - IPv6 connectivity of the local bridge network, default is true
 * **docker_local_network_ipam_config** - override to set specific IP range and gateway 
+* **docker_daemon_mtu** - MTU configured in the daemon.json, default is ansible_facts['default_ipv4'].mtu
 * **docker_portainer_install** - whether to install Portainer, default is false
 * **docker_portainer_admin_password** - administrator password, must be defined to install Portainer
 * **docker_portainer_fullchain_file** - path to certificate and its chain, must be defined to install Portainer

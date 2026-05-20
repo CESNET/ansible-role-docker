@@ -1,6 +1,6 @@
 {
 {# MTU is needed in OpenStack VMs #}
-  "mtu": {{ ansible_facts['default_ipv4'].mtu }},
+  "mtu": {{ docker_daemon_mtu | default(ansible_facts['default_ipv4']) }},
 {# sets logging into systemd-journald and syslog #}
   "log-driver": "journald",
   "log-opts": {
