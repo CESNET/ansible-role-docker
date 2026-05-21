@@ -1,0 +1,7 @@
+- name: restart docker-unhealthy-autorestarter.service
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+    name: docker-unhealthy-autorestarter.service
+    state: "{{ 'restarted' if docker_unhealthy_container_autorestarter else 'stopped' }}"
+    enabled: "{{ docker_unhealthy_container_autorestarter | bool }}"
+  ignore_errors: "{{ ansible_check_mode }}"

@@ -1,0 +1,11 @@
+#!/usr/bin/python3 -OOP
+import time
+import docker
+
+client = docker.from_env()
+while True:
+    for container in client.containers.list(filters={"status": "running"}):
+        if container.health == 'unhealthy':
+            print(f"Restarting unhealthy container {container.name}", flush=True)
+            container.restart()
+    time.sleep(60)

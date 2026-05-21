@@ -1,0 +1,14 @@
+[Unit]
+Description=Restart unhealthy docker containers
+After=docker.service
+Requisite=docker.service
+
+[Service]
+ExecStart=/usr/local/bin/docker-unhealthy-autorestarter
+User=docker-unhealthy-autorestarter
+Group=docker
+Type=simple
+Restart=always
+
+[Install]
+WantedBy=network.target
