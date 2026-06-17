@@ -7,7 +7,9 @@
 {# uses container name as its syslog tag (instead of id) #}
     "tag": "{{ '{{' }}.Name}}"
   },
-  "live-restore": true,
+{% if docker_daemon_live_restore is defined %}
+  "live-restore": {{ docker_daemon_live_restore | bool | string | lower }},
+{% endif %}
 {# enables IPv6 networking on the default network #}
   "ipv6": true,
 {# enables IPv6 NAT #}

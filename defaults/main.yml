@@ -24,3 +24,4 @@ docker_cron_jobs_force: false
 docker_volumes: []
 
 # docker_unhealthy_container_autorestarter: false
+# docker_daemon_live_restore: false
