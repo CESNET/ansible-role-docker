@@ -1,0 +1,10 @@
+[Unit]
+Description=Schedule pruning unused docker images
+After=docker.service
+
+[Timer]
+OnCalendar=Sat *-*-* 02:15:00
+RandomizedDelaySec=3600
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,13 @@
+[Unit]
+Description=Prune unused docker images
+After=docker.service docker-container-prune.service
+Requisite=docker.service
+
+[Service]
+ExecStart=/usr/bin/docker image prune --all --force --filter "label!=no-prune" --filter "until=120h"
+User=docker-pruner
+Group=docker
+Type=simple
+Restart=no
+CPUWeight=idle
+IOWeight=1

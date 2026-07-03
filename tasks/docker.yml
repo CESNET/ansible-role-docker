@@ -205,3 +205,51 @@
         dest: /etc/systemd/system/
       notify: restart docker-unhealthy-autorestarter.service
       when: docker_unhealthy_container_autorestarter
+
+- name: Set-up user docker-pruner
+  ansible.builtin.user:
+    name: docker-pruner
+    group: docker
+    system: true
+    state: present
+    shell: /usr/sbin/nologin
+    create_home: false
+  when: docker_container_prune is defined or docker_image_prune is defined
+
+- name: Configure periodic docker container prune
+  when: docker_container_prune is defined
+  block:
+    - name: Install periodic docker container prune
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: /etc/systemd/system/
+      with_list:
+        - files/docker-container-prune.service
+        - files/docker-container-prune.timer
+      register: docker_container_prune_install_result
+
+    - name: Configure docker-container-prune.timer
+      ansible.builtin.systemd_service:
+        daemon_reload: "{{ docker_container_prune_install_result.changed | default(true) }}"
+        name: docker-container-prune.timer
+        state: "{{ 'started' if docker_container_prune else 'stopped' }}"
+        enabled: "{{ docker_container_prune | bool }}"
+
+- name: Configure periodic docker image prune
+  when: docker_image_prune is defined
+  block:
+    - name: Install periodic docker image prune
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: /etc/systemd/system/
+      with_list:
+        - files/docker-image-prune.service
+        - files/docker-image-prune.timer
+      register: docker_image_prune_install_result
+
+    - name: Configure docker-image-prune.timer
+      ansible.builtin.systemd_service:
+        daemon_reload: "{{ docker_image_prune_install_result.changed | default(true) }}"
+        name: docker-image-prune.timer
+        state: "{{ 'started' if docker_image_prune else 'stopped' }}"
+        enabled: "{{ docker_image_prune | bool }}"

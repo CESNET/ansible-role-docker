@@ -43,6 +43,8 @@ Role Variables
 * **docker_cron_jobs_force** - boolean whether to run cron jobs immediately, default is false
 * **docker_volumes** - list of volume names to create, default is empty
 * **docker_unhealthy_container_autorestarter** - autorestart the unhealthy docker containers, default is undefined
+* **docker_container_prune** - weekly prune docker containers older than 5 days and without no-prune label. Default is undefined.
+* **docker_images_prune** - weekly prune docker images older than 5 days and without no-prune label. Default is undefined.
 
 Examples of Playbooks
 ----------------
