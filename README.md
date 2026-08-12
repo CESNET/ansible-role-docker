@@ -35,9 +35,10 @@ Role Variables
 * **docker_portainer_admin_password** - administrator password, must be defined to install Portainer
 * **docker_portainer_fullchain_file** - path to certificate and its chain, must be defined to install Portainer
 * **docker_portainer_privkey_file** - path to certificate's private key, must be defined to install Portainer
-* **docker_portainer_admin_password_file** - path to file with admin password, default is /etc/portainer_admin_password.txt
-* **docker_portainer_admin_password_file_owner** - default is root
-* **docker_portainer_admin_password_file_group** - default is root
+* **docker_portainer_admin_password_file** - path to file with admin 
+  password, default is /etc/portainer_admin_password.txt **Deprecated** kept 
+  only to make sure file is deleted in the next task run. Will be removed in 
+  next version.
 * **docker_portainer_use_certbot_certificates** - whether to mount certbot's directories to Portainer, default is false
 * **docker_cron_jobs** - list of cron job definitions, default is empty
 * **docker_cron_jobs_force** - boolean whether to run cron jobs immediately, default is false
@@ -63,8 +64,6 @@ Examples of Playbooks
          docker_portainer_install: true
          docker_portainer_admin_password_file: "{{ perun_certs_dir }}/portainer_admin_password.txt"
          docker_portainer_admin_password: "{{ perun_portainer_admin_password }}"
-         docker_portainer_admin_password_file_owner: root
-         docker_portainer_admin_password_file_group: perun
          docker_portainer_use_certbot_certificates: "{{ perun_use_certbot_certificates }}"
          docker_portainer_fullchain_file: "{{ perun_certificate_fullchain_file }}"
          docker_portainer_privkey_file: "{{ perun_certificate_key_file }}"

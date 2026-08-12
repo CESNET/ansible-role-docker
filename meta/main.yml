@@ -10,6 +10,7 @@ galaxy_info:
       versions:
         - buster
         - bookworm
+        - trixie
   galaxy_tags:
     - "system"
 dependencies: []
