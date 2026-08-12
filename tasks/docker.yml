@@ -90,20 +90,16 @@
           - docker_portainer_fullchain_file is defined
           - docker_portainer_privkey_file is defined
 
-    - name: "create password file"
-      copy:
-        dest: "{{ docker_portainer_admin_password_file }}"
-        content: "{{ docker_portainer_admin_password }}"
-        owner: "{{ docker_portainer_admin_password_file_owner }}"
-        group: "{{ docker_portainer_admin_password_file_group }}"
-        mode: '0640'
+    - name: "Remove old local password file"
+      ansible.builtin.file:
+        path: "{{ docker_portainer_admin_password_file }}"
+        state: absent
 
     - name: "list normal portainer volumes"
       set_fact:
         portainer_mounts:
           - { type: bind, source: /var/run/docker.sock, target: /var/run/docker.sock }
           - { type: volume, source: portainer_data, target: /data }
-          - { type: bind, source: "{{ docker_portainer_admin_password_file }}", target: "{{ docker_portainer_admin_password_file }}", read_only: yes }
           - { type: bind, source: "{{ docker_portainer_fullchain_file }}", target: "{{ docker_portainer_fullchain_file }}", read_only: yes }
           - { type: bind, source: "{{ docker_portainer_privkey_file }}", target: "{{ docker_portainer_privkey_file }}", read_only: yes }
         certbot_mounts:
@@ -122,7 +118,7 @@
         image: "portainer/portainer-ce:{{ docker_portainer_version }}"
         pull:  yes
         restart_policy: always
-        command: "-H unix:///var/run/docker.sock --http-disabled --sslcert {{ docker_portainer_fullchain_file }} --sslkey {{ docker_portainer_privkey_file }} --admin-password-file {{ docker_portainer_admin_password_file }}"
+        command: "-H unix:///var/run/docker.sock --http-disabled --sslcert {{ docker_portainer_fullchain_file }} --sslkey {{ docker_portainer_privkey_file }} --no-setup-token"
         published_ports:
           - 9000:9443
         default_host_ip: ''
@@ -137,6 +133,31 @@
         path: /etc/hosts
         regexp: 'portainer'
         line: "{{ portainer_container.container.NetworkSettings.Networks.bridge.IPAddress }} portainer"
+
+    - name: "Wait for portainer API to become available"
+      ansible.builtin.uri:
+        url: "https://portainer:9443/api/system/status"
+        validate_certs: false
+        status_code: 200
+        timeout: 30
+      register: portainer_api_status
+      until: portainer_api_status.status == 200
+      retries: 15
+      delay: 10
+
+    - name: "Initialize portainer admin account via API"
+      ansible.builtin.uri:
+        url: "https://portainer:9443/api/users/admin/init"
+        method: POST
+        body_format: json
+        body:
+          Username: "admin"
+          Password: "{{ docker_portainer_admin_password }}"
+        validate_certs: false
+        status_code:
+          - 200
+          - 409
+      no_log: true  # hide password from logs
 
 - name: "log into docker container registries"
   docker_login:
