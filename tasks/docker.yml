@@ -90,11 +90,6 @@
           - docker_portainer_fullchain_file is defined
           - docker_portainer_privkey_file is defined
 
-    - name: "Remove old local password file"
-      ansible.builtin.file:
-        path: "{{ docker_portainer_admin_password_file }}"
-        state: absent
-
     - name: "list normal portainer volumes"
       set_fact:
         portainer_mounts:
