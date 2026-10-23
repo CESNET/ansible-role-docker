@@ -35,10 +35,6 @@ Role Variables
 * **docker_portainer_admin_password** - administrator password, must be defined to install Portainer
 * **docker_portainer_fullchain_file** - path to certificate and its chain, must be defined to install Portainer
 * **docker_portainer_privkey_file** - path to certificate's private key, must be defined to install Portainer
-* **docker_portainer_admin_password_file** - path to file with admin 
-  password, default is /etc/portainer_admin_password.txt **Deprecated** kept 
-  only to make sure file is deleted in the next task run. Will be removed in 
-  next version.
 * **docker_portainer_use_certbot_certificates** - whether to mount certbot's directories to Portainer, default is false
 * **docker_cron_jobs** - list of cron job definitions, default is empty
 * **docker_cron_jobs_force** - boolean whether to run cron jobs immediately, default is false
@@ -47,7 +43,7 @@ Role Variables
 * **docker_container_prune** - weekly prune docker containers older than 5 days and without no-prune label. Default is undefined.
 * **docker_images_prune** - weekly prune docker images older than 5 days and without no-prune label. Default is undefined.
 
-Examples of Playbooks
+Examples of Playbook
 ----------------
 
 ```yaml
@@ -57,12 +53,11 @@ Examples of Playbooks
        vars:
          docker_packages_hold: true
          docker_registries:
-           - url: registry.gitlab.ics.muni.cz:443
-             username: gitlab-read-only-deploy-token-perun-all
-             password: BgdJHJ_gsmyqp3se5WRx
+           - url: your.docker.registry.example.org:443
+             username: your_token
+             password: your_password
          docker_local_network_name: perun_net
          docker_portainer_install: true
-         docker_portainer_admin_password_file: "{{ perun_certs_dir }}/portainer_admin_password.txt"
          docker_portainer_admin_password: "{{ perun_portainer_admin_password }}"
          docker_portainer_use_certbot_certificates: "{{ perun_use_certbot_certificates }}"
          docker_portainer_fullchain_file: "{{ perun_certificate_fullchain_file }}"

@@ -13,7 +13,6 @@ docker_local_network_ipv6: true
 docker_local_network_ipam_config:
 
 docker_portainer_install: false
-docker_portainer_admin_password_file: /etc/portainer_admin_password.txt
 docker_portainer_use_certbot_certificates: false
 
 docker_cron_jobs: []
