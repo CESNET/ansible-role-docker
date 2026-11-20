@@ -222,6 +222,15 @@
       notify: restart docker-unhealthy-autorestarter.service
       when: docker_unhealthy_container_autorestarter
 
+    - name: Configure systemd service docker-unhealthy-autorestarter.service
+      ansible.builtin.service:
+        name: docker-unhealthy-autorestarter.service
+        state: "{{ 'started' if docker_unhealthy_container_autorestarter else 'stopped' }}"
+        enabled: "{{ docker_unhealthy_container_autorestarter | bool }}"
+
+    - name: flush handlers
+      ansible.builtin.meta: flush_handlers
+
 - name: Set-up user docker-pruner
   ansible.builtin.user:
     name: docker-pruner
@@ -269,3 +278,6 @@
         name: docker-image-prune.timer
         state: "{{ 'started' if docker_image_prune else 'stopped' }}"
         enabled: "{{ docker_image_prune | bool }}"
+
+    - name: flush handlers
+      ansible.builtin.meta: flush_handlers
